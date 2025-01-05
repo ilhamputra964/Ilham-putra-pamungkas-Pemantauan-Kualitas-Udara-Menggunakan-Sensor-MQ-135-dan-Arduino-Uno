@@ -1,0 +1,53 @@
+#include <Wire.h>                 // Library untuk komunikasi I2C
+#include <LiquidCrystal_I2C.h>    // Library untuk LCD I2C
+
+#define MQ135_PIN A0              // Pin analog untuk sensor MQ-135
+LiquidCrystal_I2C lcd(0x27, 16, 2); // Inisialisasi LCD (alamat I2C default 0x27)
+
+// Variabel untuk penghitungan nilai gas
+float sensorValue = 0;
+float ppm = 0;
+
+void setup() {
+  lcd.begin();                    // Menginisialisasi LCD
+  lcd.backlight();                // Menghidupkan backlight LCD
+  Serial.begin(9600);             // Inisialisasi komunikasi serial
+
+  // Pesan awal pada LCD
+  lcd.setCursor(0, 0);
+  lcd.print("Pemantauan Udara");
+  lcd.setCursor(0, 1);
+  lcd.print("Loading...");
+  delay(2000);                    // Tunda 2 detik
+  lcd.clear();
+}
+
+void loop() {
+  // Membaca nilai analog dari sensor MQ-135
+  sensorValue = analogRead(MQ135_PIN);
+
+  // Mengkonversi nilai analog ke PPM (perkiraan)
+  ppm = sensorValue * (5.0 / 1023.0) * 100;
+
+  // Menampilkan data pada Serial Monitor
+  Serial.print("Sensor Value: ");
+  Serial.print(sensorValue);
+  Serial.print(" | PPM: ");
+  Serial.println(ppm);
+
+  // Menampilkan data pada LCD
+  lcd.setCursor(0, 0);
+  lcd.print("Gas: ");
+  lcd.print(ppm);
+  lcd.print(" ppm");
+
+  if (ppm > 100) {
+    lcd.setCursor(0, 1);
+    lcd.print("Udara Buruk!");
+  } else {
+    lcd.setCursor(0, 1);
+    lcd.print("Udara Aman ");
+  }
+
+  delay(2000); // Tunda 2 detik sebelum pembacaan berikutnya
+}
